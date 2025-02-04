@@ -2,54 +2,40 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\GalleryItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 class GalleryController extends Controller
 {
-    // Constructor to apply the middleware
-    public function __construct()
+    public function index()
     {
-        $this->middleware('admin'); // This applies the 'admin' middleware to all methods
+        // Načítání obrázků z public/images
+        $imageFiles = \File::files(public_path('images'));
+        $images = array_filter($imageFiles, function ($file) {
+            return in_array($file->getExtension(), ['jpg', 'jpeg', 'png', 'gif']);
+        });
+
+        return view('welcome', ['images' => $images]);
     }
 
-    public function adminGallery()
+    // Metoda pro nahrání obrázku
+    public function upload(Request $request)
     {
-        $items = GalleryItem::all();
-        return view('admin.gallery', compact('items'));
-    }
-
-    public function addItem(Request $request)
-    {
-        // Validate incoming request
+        // Validace souboru
         $request->validate([
-            'name' => 'required|string',
-            'image' => 'required|image',
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048', // Max. velikost 2MB
         ]);
 
-        // Store the image
-        $path = $request->file('image')->store('gallery_images', 'public');
+        // Uložení obrázku do složky images
+        if ($request->hasFile('image')) {
+            $image = $request->file('image');
+            $imageName = time() . '-' . $image->getClientOriginalName(); // Generování jedinečného názvu souboru
+            $image->move(public_path('images'), $imageName); // Uložení obrázku do public/images
 
-        // Save the new gallery item to the database
-        GalleryItem::create([
-            'name' => $request->name,
-            'image_path' => $path,
-        ]);
-
-        return redirect()->route('admin.gallery');
-    }
-
-    public function deleteItem(GalleryItem $item)
-    {
-        // Delete the image file from storage
-        if ($item->image_path) {
-            Storage::delete('public/' . $item->image_path);  // Ensure Storage is used correctly
+            // Po úspěšném uložení přesměrování na index
+            return redirect()->route('gallery.index');
         }
 
-        // Delete the gallery item from the database
-        $item->delete();
-
-        return redirect()->route('admin.gallery');
+        return back()->with('error', 'Nahrávání selhalo.');
     }
 }

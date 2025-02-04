@@ -5,9 +5,7 @@ use App\Http\Controllers\GalleryController;
 use Illuminate\Support\Facades\Route;
 
 // Gallery - protected by auth
-Route::get('/', function () {
-    return view('welcome');
-})->middleware('auth'); // Only authenticated users can access this route
+Route::middleware('auth')->get('/', [GalleryController::class, 'index'])->name('gallery.index');
 
 // Login Route
 Route::get('/login', function () {
@@ -24,6 +22,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    // Gallery Routes for authenticated users
+    Route::post('/upload', [GalleryController::class, 'upload'])->name('gallery.upload');
 });
 
 // Admin Gallery Routes (Only accessible by Admins)
@@ -38,4 +39,5 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::delete('/admin/gallery/{item}', [GalleryController::class, 'deleteItem'])->name('admin.deleteItem');
 });
 
-require __DIR__.'/auth.php'; // Ensure this includes the authentication routes like register, login, etc.
+// Ensure this includes the authentication routes like register, login, etc.
+require __DIR__.'/auth.php';

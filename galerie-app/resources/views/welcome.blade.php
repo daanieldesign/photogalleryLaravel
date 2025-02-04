@@ -43,19 +43,16 @@
 
     <!-- Gallery Section with Lightbox -->
     <div x-data="{ open: false, image: '' }" class="max-w-7xl mx-auto py-8">
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            @foreach (['image1.jpg', 'image2.jpg', 'image3.jpg', 'image4.jpg', 'image5.png', 'image6.png', 'image7.jpg',
-            'image8.jpg', 'image9.jpg', 'image10.jpg', 'image11.jpg', 'image12.jpg', 'image13.jpg', 'image14.jpg',
-            'image15.jpg', 'image16.jpg', 'image17.jpg', 'image18.jpg', 'image19.jpg', 'image20.jpg', 'image21.jpg',
-            'image22.png', 'image23.png', 'image24.jpg', 'image25.png', 'image26.png', 'image27.png', 'image28.png',
-            'image29.png', 'image30.jpg', 'image31.jpg', 'image32.png', 'image33.png',] as $image)
-                <div class="bg-gray-900 rounded-lg overflow-hidden shadow-md cursor-pointer"
-                     @click="open = true; image = '{{ asset('images/'.$image) }}'">
-                    <img src="{{ asset('images/'.$image) }}" alt="Obrazek_cislo" class="w-full h-48 object-cover">
-                </div>
-            @endforeach
-        </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        @foreach ($images as $image) <!-- Tento cyklus prochází všechny obrázky -->
+            <div class="bg-gray-900 rounded-lg overflow-hidden shadow-md cursor-pointer"
+                 @click="open = true; image = '{{ asset('images/' . basename($image)) }}'">
+                <img src="{{ asset('images/' . basename($image)) }}" alt="Obrazek" class="w-full h-48 object-cover">
+            </div>
+        @endforeach
     </div>
+</div>
+
 
     <!-- Lightbox Modal -->
     <div x-show="open" x-cloak class="fixed inset-0 bg-black bg-opacity-75 flex justify-center items-center z-50"
@@ -65,6 +62,16 @@
             <img :src="image" class="w-full max-h-screen object-contain">
         </div>
     </div>
+
+    <!-- Tlačítko pro výběr souboru -->
+<div class="max-w-7xl mx-auto py-8">
+    <form action="{{ route('gallery.upload') }}" method="POST" enctype="multipart/form-data">
+        @csrf
+        <input type="file" name="image" accept="image/*" class="bg-gray-700 text-white px-4 py-2 rounded-md cursor-pointer">
+        <button type="submit" class="ml-4 px-6 py-2 bg-blue-600 text-white rounded-md">Nahraj obrázek</button>
+    </form>
+</div>
+
 
     <style>
         [x-cloak] { display: none !important; }
